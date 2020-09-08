@@ -2,15 +2,25 @@ package git.swofty.treebound;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 
 public final class Treebound extends JavaPlugin implements Listener {
+
+    // Variable for Leafs
+    Material leafOak = Material.OAK_LEAVES;
+    Material leafBirch = Material.BIRCH_LEAVES;
+    Material leafDark = Material.DARK_OAK_LEAVES;
+    Material leafAcacia = Material.ACACIA_LEAVES;
+    Material leafJungle = Material.JUNGLE_LEAVES;
 
     // ArrayList for running players
     ArrayList<Player> runningPlayers;
@@ -82,7 +92,7 @@ public final class Treebound extends JavaPlugin implements Listener {
                             Player chaserTarget = Bukkit.getPlayer(args[2]);
 
                             // Checks if we're removing or adding the player
-                            
+
 
                             // Checks if player is a chaser
                             if (chasingPlayers.contains(chaserTarget)) {
@@ -171,6 +181,54 @@ public final class Treebound extends JavaPlugin implements Listener {
                                 // Send player and target a message of success
                                 player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&d[TreeBound] &fSuccessfully removed '" + runnerTarget.getDisplayName() + "' from runner"));
                                 runnerTarget.sendMessage(ChatColor.translateAlternateColorCodes('&', "&d[TreeBound] &fYou have been removed from runner"));
+                            }
+                            break;
+
+                        case "start":
+
+                            // Checks if game is already started
+                            if(gameStarted.equals(true)) {
+                                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&d[TreeBound] &fGame has already started"));
+                                return true;
+                            }
+
+                            // Makes sure there is 1 chaser and 1 runner
+                            if (!(chasingPlayers.size() >= 1) || !(runningPlayers.size() >= 1)) {
+                                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&d[TreeBound] &fThere must be atleast 1 runner / chaser to start the game"));
+                                return true;
+                            }
+
+                            // Starts game
+                            gameStarted = true;
+
+                            // Announces game start to all players of the game
+                            for (Player playerOnline : Bukkit.getOnlinePlayers()) {
+                                if (runningPlayers.contains(playerOnline) || chasingPlayers.contains(playerOnline)) {
+                                    playerOnline.sendMessage(ChatColor.translateAlternateColorCodes('&', "&d[TreeBound] &fGame has started, you can no longer step on anything other then leaves!"));
+                                }
+                            }
+
+                            // Makes sure respawn point has leaves under to prevent death on respawn
+                            Location worldSpawn = Bukkit.getWorld(String.valueOf(player.getWorld())).getSpawnLocation();
+                            player.getWorld().getBlockAt(worldSpawn.getBlockX(), worldSpawn.getBlockY() - 1, worldSpawn.getBlockZ()).setType(leafOak);
+                            break;
+
+                        case "stop":
+
+                            // Checks if game is already ended
+                            if(gameStarted.equals(false)) {
+                                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&d[TreeBound] &fGame has already ended"));
+                                return true;
+                            }
+
+                            // Stops game
+                            gameStarted = false;
+
+                            // Announces game end to all players of the game
+                            for (Player playerOnline : Bukkit.getOnlinePlayers()) {
+                                if (runningPlayers.contains(playerOnline) || chasingPlayers.contains(playerOnline)) {
+                                    playerOnline.sendMessage(ChatColor.translateAlternateColorCodes('&', "&d[TreeBound] &fGame has ended, you can now step on whatever you want"));
+                                }
                             }
                             break;
 
