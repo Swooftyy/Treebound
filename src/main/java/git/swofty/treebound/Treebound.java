@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -45,6 +46,30 @@ public final class Treebound extends JavaPlugin implements Listener {
     public void onDisable() {
         // Code to run on plugin disable
         Bukkit.getLogger().info("Disabled Treebound - v1 by Swofty");
+    }
+
+    @EventHandler
+    public void blockPlace(BlockPlaceEvent event) {
+
+        // Gets player
+        Player player = event.getPlayer();
+
+        // Gets the block placed
+        Material material = event.getBlock().getType();
+
+        // Checks if game has started
+        if (gameStarted == false) {
+            return;
+        }
+
+        // Makes sure the player is a chaser / runner
+        if (runningPlayers.contains(player) || chasingPlayers.contains(player)) {
+
+            // Checks if oak was placed, if so give new leaves
+            if (material == leafOak || material == leafAcacia || material == leafJungle || material == leafDark || material == leafDark || material == leafBirch) {
+                player.setItemInHand(new ItemStack(Material.OAK_LEAVES));
+            }
+        }
     }
 
     @EventHandler
@@ -255,6 +280,10 @@ public final class Treebound extends JavaPlugin implements Listener {
                             for (Player playerOnline : Bukkit.getOnlinePlayers()) {
                                 if (runningPlayers.contains(playerOnline) || chasingPlayers.contains(playerOnline)) {
                                     playerOnline.sendMessage(ChatColor.translateAlternateColorCodes('&', "&d[TreeBound] &fGame has started, you can no longer step on anything other then leaves!"));
+
+                                    // Gives all players 1 leaf block in slot 0
+                                    playerOnline.getInventory().setHeldItemSlot(0);
+                                    playerOnline.getInventory().setItemInMainHand(new ItemStack(Material.OAK_LEAVES));
                                 }
                             }
 
