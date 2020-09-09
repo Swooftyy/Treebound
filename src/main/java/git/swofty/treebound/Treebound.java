@@ -7,7 +7,9 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -36,6 +38,7 @@ public final class Treebound extends JavaPlugin implements Listener {
     public void onEnable() {
         // Code to run on plugin enable
         Bukkit.getLogger().info("Enabled Treebound - v1 by Swofty");
+        this.getPluginLoader().createRegisteredListeners(this, this);
     }
 
     @Override
@@ -43,6 +46,53 @@ public final class Treebound extends JavaPlugin implements Listener {
         // Code to run on plugin disable
         Bukkit.getLogger().info("Disabled Treebound - v1 by Swofty");
     }
+
+    @EventHandler
+    public void playerMove(PlayerMoveEvent event) {
+
+        // Assigns player variable
+        Player player = event.getPlayer();
+
+        // Returns if game has not started
+        if (gameStarted == false) {
+            return;
+        }
+
+        // Checks if player is not playing, if so return
+        if (!chasingPlayers.contains(player) || !runningPlayers.contains(player)) {
+            return;
+        }
+
+        // Grabs all player coordinates
+        int x = player.getLocation().getBlockX();
+        int y = player.getLocation().getBlockY();
+        int z = player.getLocation().getBlockZ();
+
+        // Revises Y coordinate so its below player
+        int revisedY = y - 1;
+
+        // Checks if player's revised Y coordinate is on any kind of leaf, if so return
+        if (player.getWorld().getBlockAt(x, revisedY, z).getBlockData().getMaterial() == leafJungle || player.getWorld().getBlockAt(x, revisedY, z).getBlockData().getMaterial() == leafOak || player.getWorld().getBlockAt(x, revisedY, z).getBlockData().getMaterial() == leafBirch ||player.getWorld().getBlockAt(x, revisedY, z).getBlockData().getMaterial() == leafAcacia ||player.getWorld().getBlockAt(x, revisedY, z).getBlockData().getMaterial() == leafDark) {
+            return;
+        }
+
+        // If player is a chaser, kill and return to world spawn
+        if (chasingPlayers.contains(player)) {
+            player.damage(20);
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&d[TreeBound] &fYou were killed for not standing on a leaf"));
+            return;
+        }
+
+        // If code has gotten to this point, player is a runner and game should end
+        gameStarted = false;
+        player.damage(20);
+        for (Player playersOnline : Bukkit.getOnlinePlayers()) {
+            playersOnline.sendMessage(ChatColor.translateAlternateColorCodes('&', "&d[TreeBound] &fThe runner has died, game over"));
+        }
+
+    }
+
+
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
